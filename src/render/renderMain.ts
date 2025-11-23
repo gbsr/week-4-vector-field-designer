@@ -1,13 +1,16 @@
+import type { Tracer } from "../field/tracers"
 import type { InfluenceNode } from "../state/nodes"
 import type { Viewport } from "../viewport/viewportState"
 import { renderGrid } from "./renderGrid"
+import { renderTracers } from "./renderTracers"
 import { renderVectorField } from "./renderVectorField"
 
 export function renderMain(
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
   viewport: Viewport,
-  nodes: InfluenceNode[]
+  nodes: InfluenceNode[],
+  tracers: Tracer[]
 ) {
   const w = canvas.width
   const h = canvas.height
@@ -26,4 +29,5 @@ export function renderMain(
 
   renderGrid(viewport, ctx, w, h, 50)
   renderVectorField(ctx, w, h, 40, nodes, true, 25)
+  renderTracers(ctx, tracers, 1, "rgba(255, 255, 255, 0.9)")
 }

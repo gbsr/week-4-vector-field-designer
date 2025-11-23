@@ -2,6 +2,7 @@ import { renderMain } from "./render/renderMain"
 import { createViewport } from "./viewport/viewportState"
 import type { InfluenceNode } from "./state/nodes"
 import "./style.css"
+import { createTracers, stepTracers } from "./field/tracers"
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <div class="code-container">
@@ -73,10 +74,12 @@ copyButton?.addEventListener("click", () => {
 })
 
 // setup canvas
-const canvas = document.querySelector<HTMLCanvasElement>("#canvas")
-if (!canvas) {
+const canvasElement = document.querySelector<HTMLCanvasElement>("#canvas")
+if (!canvasElement) {
   throw new Error('Canvas element with id "canvas" not found')
 }
+
+const canvas: HTMLCanvasElement = canvasElement
 
 const ctx = canvas.getContext("2d")
 if (!ctx) {
@@ -93,25 +96,64 @@ const nodes: InfluenceNode[] = [
   {
     id: "n1",
     kind: "vortex",
+    spin: "ccw",
     x: canvas.width / 2,
     y: canvas.height / 2,
-    force: 1,
-    radius: 150,
+    force: 30,
+    radius: 250,
     falloff: "smooth",
   },
+
   {
     id: "n2",
     kind: "flow",
+    directionDeg: 55,
     x: 500,
     y: 300,
-    force: 5,
-    radius: 150,
+    force: 11,
+    radius: 250,
+    falloff: "linear",
+  },
+
+  {
+    id: "n3",
+    kind: "flow",
+    directionDeg: 135,
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    force: 3,
+    radius: 250,
+    falloff: "smooth",
+  },
+  {
+    id: "n4",
+    kind: "repel",
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    force: 3,
+    radius: 50,
     falloff: "smooth",
   },
 ]
 
-// clear and render
-ctx.clearRect(0, 0, canvas.width, canvas.height)
-
 const viewport = createViewport()
-renderMain(canvas, ctx, viewport, nodes)
+
+const tracers = createTracers(60, 180, 90, nodes)
+
+let lastTimestamp = performance.now()
+
+function loop(timestamp: number) {
+  const deltaMs = timestamp - lastTimestamp
+  lastTimestamp = timestamp
+
+  const deltaSeconds = deltaMs / 1000
+
+  // Update tracer positions according to the field
+  stepTracers(tracers, nodes, deltaSeconds, canvas.width, canvas.height)
+
+  // Render everything for this frame
+  renderMain(canvas, ctx!, viewport, nodes, tracers)
+  requestAnimationFrame(loop)
+}
+
+requestAnimationFrame(loop)
