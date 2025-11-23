@@ -1,7 +1,7 @@
+import { drawArrow } from './render/renderArrow'
 import './style.css'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
     <div class="code-container">
     <button id="copyButton">Copy Code</button>
       <div class="code-contentWrapper">
@@ -51,7 +51,6 @@ animate();
     <div class="canvas-container">
       <canvas id="canvas"></canvas>
     </div>
-  </div>
 `
 
 const copyButton = document.getElementById('copyButton');
@@ -66,3 +65,26 @@ copyButton?.addEventListener('click', () => {
   }
 });
 
+// setup canvas
+const canvas = document.querySelector<HTMLCanvasElement>('#canvas');
+if (!canvas) {
+  throw new Error('Canvas element with id "canvas" not found');
+}
+
+const ctx = canvas.getContext('2d');
+if (!ctx) {
+  throw new Error('Could not get 2D 2D context');
+}
+
+// make canvas match CSS size once at startup
+const rect = canvas.getBoundingClientRect();
+canvas.width = rect.width;
+canvas.height = rect.height;
+
+// clear and draw one test arrow in the center of the canvas
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+// get center of canvas
+const cx = canvas.width / 2;
+const cy = canvas.height / 2;
+
+drawArrow(ctx, cx, cy, 1, -1, 27);
