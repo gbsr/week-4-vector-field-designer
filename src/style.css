@@ -1,0 +1,64 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #121212;
+  color: #ffffff;
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+#app { 
+  width: 100vw; 
+  height: 100vh; 
+  display: flex; 
+}
+
+.code-container {
+  width: 50vw;
+  height: 100vh;
+  background-color: #1e1e1e;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.code-container button {
+  margin: 20px;
+  padding: 8px 12px;
+  background-color: #007acc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  max-width: 120px;
+}
+
+.code-contentWrapper {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  margin: 10px;
+}
+
+pre {
+  margin: 0px;
+  padding: 0px;
+}
+
+.code-content {
+  padding: 20px;
+  margin-left: 30px;
+  margin-right: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  background-color: #333;
+  border-radius: 4px;
+  color: #d4d4d4;
+  overflow-y: auto;
+  height: 95%;
+}
