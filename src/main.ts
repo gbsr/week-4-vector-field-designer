@@ -1,8 +1,9 @@
-import { renderMain } from './render/renderMain'
-import { createViewport } from './viewport/viewportState'
-import './style.css'
+import { renderMain } from "./render/renderMain"
+import { createViewport } from "./viewport/viewportState"
+import type { InfluenceNode } from "./state/nodes"
+import "./style.css"
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <div class="code-container">
     <button id="copyButton">Copy Code</button>
       <div class="code-contentWrapper">
@@ -54,36 +55,63 @@ animate();
     </div>
 `
 
-const copyButton = document.getElementById('copyButton');
-copyButton?.addEventListener('click', () => {
-  const codeContent = document.querySelector('.code-content')?.textContent?.trim();
+const copyButton = document.getElementById("copyButton")
+copyButton?.addEventListener("click", () => {
+  const codeContent = document
+    .querySelector(".code-content")
+    ?.textContent?.trim()
   if (codeContent) {
-    navigator.clipboard.writeText(codeContent).then(() => {
-      alert('Code copied to clipboard!');
-    }).catch(err => {
-      console.error('Failed to copy text: ', err);
-    });
+    navigator.clipboard
+      .writeText(codeContent)
+      .then(() => {
+        alert("Code copied to clipboard!")
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err)
+      })
   }
-});
+})
 
 // setup canvas
-const canvas = document.querySelector<HTMLCanvasElement>('#canvas');
+const canvas = document.querySelector<HTMLCanvasElement>("#canvas")
 if (!canvas) {
-  throw new Error('Canvas element with id "canvas" not found');
+  throw new Error('Canvas element with id "canvas" not found')
 }
 
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext("2d")
 if (!ctx) {
-  throw new Error('Could not get 2D 2D context');
+  throw new Error("Could not get 2D 2D context")
 }
 
 // make canvas match CSS size once at startup
-const rect = canvas.getBoundingClientRect();
-canvas.width = rect.width;
-canvas.height = rect.height;
+const rect = canvas.getBoundingClientRect()
+canvas.width = rect.width
+canvas.height = rect.height
+
+// test node
+const nodes: InfluenceNode[] = [
+  {
+    id: "n1",
+    kind: "vortex",
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    force: 1,
+    radius: 150,
+    falloff: "smooth",
+  },
+  {
+    id: "n2",
+    kind: "flow",
+    x: 500,
+    y: 300,
+    force: 5,
+    radius: 150,
+    falloff: "smooth",
+  },
+]
 
 // clear and render
-ctx.clearRect(0, 0, canvas.width, canvas.height);
+ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-const viewport = createViewport();
-renderMain(canvas, ctx, viewport)
+const viewport = createViewport()
+renderMain(canvas, ctx, viewport, nodes)
