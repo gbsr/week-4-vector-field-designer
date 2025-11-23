@@ -1,4 +1,5 @@
-import { drawArrow } from './render/renderArrow'
+import { renderMain } from './render/renderMain'
+import { createViewport } from './viewport/viewportState'
 import './style.css'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -81,10 +82,8 @@ const rect = canvas.getBoundingClientRect();
 canvas.width = rect.width;
 canvas.height = rect.height;
 
-// clear and draw one test arrow in the center of the canvas
+// clear and render
 ctx.clearRect(0, 0, canvas.width, canvas.height);
-// get center of canvas
-const cx = canvas.width / 2;
-const cy = canvas.height / 2;
 
-drawArrow(ctx, cx, cy, 1, -1, 27);
+const viewport = createViewport();
+renderMain(canvas, ctx, viewport)
