@@ -1,6 +1,7 @@
 import type { Viewport } from "../viewport/viewportState";
 import { drawArrow } from "./renderArrow"
 import { renderGrid } from "./renderGrid";
+import { renderVectorField } from "./renderVectorField"
 
 export function renderMain(
   canvas: HTMLCanvasElement,
@@ -24,10 +25,6 @@ export function renderMain(
   );
 
   renderGrid(viewport, ctx, w, h, 50);
-
-  // render arrow in center of canvas
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 2;
-  drawArrow(ctx, cx, cy, 1, -1, 27);
+  renderVectorField(ctx, w, h, 40);
 
 }
