@@ -8,10 +8,10 @@ body {
   width: 100vw;
 }
 
-#app { 
-  width: 100vw; 
-  height: 100vh; 
-  display: flex; 
+#app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
 }
 
 .code-container {
@@ -49,11 +49,34 @@ pre {
   padding: 0px;
 }
 
+span.canvas-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #888;
+  font-size: 14px;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 4px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+span#zoomLabel {
+  left: auto;
+  right: 10px;
+}
+
+span#posLabel {
+  top: 40px;
+  left: auto;
+  right: 10px;
+}
+
 .code-content {
   padding: 20px;
   margin-left: 30px;
   margin-right: 10px;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   font-size: 14px;
   line-height: 1.5;
   background-color: #333;

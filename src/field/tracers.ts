@@ -1,5 +1,6 @@
 import type { InfluenceNode } from "../state/nodes"
 import { evaluateField } from "./evaluateField"
+import type { Viewport } from "../viewport/viewportState"
 
 export interface TracerPoint {
   x: number
@@ -50,9 +51,16 @@ export function stepTracers(
   tracers: Tracer[],
   nodes: InfluenceNode[],
   deltaSeconds: number,
+  viewport: Viewport,
   canvasWidth: number,
   canvasHeight: number
 ) {
+  // calculate visible world-space bounds
+  const worldLeft = -viewport.offsetX / viewport.scale
+  const worldTop = -viewport.offsetY / viewport.scale
+  const worldRight = worldLeft + canvasWidth / viewport.scale
+  const worldBottom = worldTop + canvasHeight / viewport.scale
+
   for (const tracer of tracers) {
     const { x, y } = tracer.position
 
@@ -60,8 +68,8 @@ export function stepTracers(
     const field = evaluateField(x, y, nodes)
     const fieldLength = Math.hypot(field.vx, field.vy)
 
-    // If field is invalid, just respawn safely
-    if (!Number.isFinite(fieldLength)) {
+    // if field is invalid or zero here, respawn around a node
+    if (!Number.isFinite(fieldLength) || fieldLength === 0) {
       const node = nodes[Math.floor(Math.random() * nodes.length)]
       const angle = Math.random() * Math.PI * 2
       const radius = Math.random() * node.radius
@@ -72,14 +80,8 @@ export function stepTracers(
       continue
     }
 
-    // Normalize field direction so speed is controlled by tracer.speed
-    let directionX = 0
-    let directionY = 0
-
-    if (fieldLength > 0) {
-      directionX = field.vx / fieldLength
-      directionY = field.vy / fieldLength
-    }
+    const directionX = field.vx / fieldLength
+    const directionY = field.vy / fieldLength
 
     const moveX = directionX * tracer.speed * deltaSeconds
     const moveY = directionY * tracer.speed * deltaSeconds
@@ -93,9 +95,11 @@ export function stepTracers(
       tracer.history.shift()
     }
 
-    // If tracer goes off-screen, respawn inside a node radius
     const isOffscreen =
-      newX < 0 || newX > canvasWidth || newY < 0 || newY > canvasHeight
+      newX < worldLeft ||
+      newX > worldRight ||
+      newY < worldTop ||
+      newY > worldBottom
 
     if (isOffscreen) {
       const node = nodes[Math.floor(Math.random() * nodes.length)]

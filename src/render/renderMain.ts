@@ -28,6 +28,6 @@ export function renderMain(
   )
 
   renderGrid(viewport, ctx, w, h, 50)
-  renderVectorField(ctx, w, h, 40, nodes, true, 25)
+  renderVectorField(ctx, w, h, 40, nodes, true, 25, viewport)
   renderTracers(ctx, tracers, 1, "rgba(255, 255, 255, 0.9)")
 }
