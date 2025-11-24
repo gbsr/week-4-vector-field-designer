@@ -3,6 +3,7 @@ import { createViewport, type Viewport } from "./state/viewport"
 import type { InfluenceNode } from "./state/nodes"
 import "./style.css"
 import { createTracers, stepTracers } from "./field/tracers"
+import { cardHeight, cardWidth } from "./render/renderCards"
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <div class="code-container">
@@ -105,41 +106,102 @@ window.addEventListener("resize", () => {
 // viewport (used by pan/zoom + render)
 const viewport = createViewport()
 
+// drag state, will be refactored into proper state management later
+type DragMode = "none" | "pan" | "node" | "card"
+
+let dragMode: DragMode = "none"
+let dragNode: InfluenceNode | null = null
+let dragOffsetX = 0
+let dragOffsetY = 0
+let lastPanX = 0
+let lastPanY = 0
+
 // center world origin (0,0) in the middle of the canvas
 viewport.offsetX = canvas.width / 2
 viewport.offsetY = canvas.height / 2
 viewport.scale = 1
 
-// zoom/pan handling
-let isPanning = false
-let lastX = 0
-let lastY = 0
-
 canvas.addEventListener("mousedown", (e) => {
-  isPanning = true
-  lastX = e.clientX
-  lastY = e.clientY
+  const rect = canvas.getBoundingClientRect()
+  const mouseX = e.clientX - rect.left
+  const mouseY = e.clientY - rect.top
+  const world = screenToWorld(mouseX, mouseY, viewport)
+
+  // Check node hit
+  const R = 12 // clickable radius (world units)
+  for (const node of nodes) {
+    const dx = world.x - node.x
+    const dy = world.y - node.y
+    if (Math.hypot(dx, dy) <= R) {
+      dragMode = "node"
+      dragNode = node
+      dragOffsetX = world.x - node.x
+      dragOffsetY = world.y - node.y
+      return
+    }
+  }
+
+  // Check card hit
+  for (const node of nodes) {
+    if (
+      world.x >= node.cardX &&
+      world.x <= node.cardX + cardWidth &&
+      world.y >= node.cardY &&
+      world.y <= node.cardY + cardHeight
+    ) {
+      dragMode = "card"
+      dragNode = node
+      dragOffsetX = world.x - node.cardX
+      dragOffsetY = world.y - node.cardY
+      return
+    }
+  }
+
+  // Otherwise: start panning
+  dragMode = "pan"
+  lastPanX = e.clientX
+  lastPanY = e.clientY
 })
 
 window.addEventListener("mousemove", (e) => {
-  if (!isPanning) return
+  if (dragMode === "none") return
 
-  const dx = e.clientX - lastX
-  const dy = e.clientY - lastY
+  if (dragMode === "pan") {
+    const dx = e.clientX - lastPanX
+    const dy = e.clientY - lastPanY
 
-  viewport.offsetX += dx
-  viewport.offsetY += dy
+    viewport.offsetX += dx
+    viewport.offsetY += dy
 
-  lastX = e.clientX
-  lastY = e.clientY
+    lastPanX = e.clientX
+    lastPanY = e.clientY
+    return
+  }
+
+  if (!dragNode) return
+
+  const rect = canvas.getBoundingClientRect()
+  const mouseX = e.clientX - rect.left
+  const mouseY = e.clientY - rect.top
+  const world = screenToWorld(mouseX, mouseY, viewport)
+
+  if (dragMode === "node") {
+    dragNode.x = world.x - dragOffsetX
+    dragNode.y = world.y - dragOffsetY
+  } else if (dragMode === "card") {
+    dragNode.cardX = world.x - dragOffsetX
+    dragNode.cardY = world.y - dragOffsetY
+  }
 })
 
 window.addEventListener("mouseup", () => {
-  isPanning = false
+  dragMode = "none"
+  dragNode = null
 })
 
 window.addEventListener("mouseleave", () => {
-  isPanning = false
+  dragMode = "none"
+  dragNode = null
 })
 
 canvas.addEventListener(
@@ -325,7 +387,7 @@ function loop(timestamp: number) {
   )
 
   // Render everything for this frame
-  renderMain(canvas, ctx!, viewport, nodes, tracers)
+  renderMain(canvas, ctx!, viewport, nodes, tracers, 180, 90)
 
   requestAnimationFrame(loop)
 }
