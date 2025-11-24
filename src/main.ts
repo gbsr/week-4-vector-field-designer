@@ -171,6 +171,10 @@ canvas.addEventListener(
 
     viewport.offsetX = mouseX - worldXAfter
     viewport.offsetY = mouseY - worldYAfter
+
+    if (zoomLabel) {
+      zoomLabel.textContent = `Zoom: ${(viewport.scale * 100).toFixed(0)}%`
+    }
   },
   { passive: false }
 )
@@ -268,10 +272,6 @@ function loop(timestamp: number) {
 
   // Render everything for this frame
   renderMain(canvas, ctx!, viewport, nodes, tracers)
-
-  if (zoomLabel) {
-    zoomLabel.textContent = `Zoom: ${(viewport.scale * 100).toFixed(0)}%`
-  }
 
   requestAnimationFrame(loop)
 }
