@@ -1,5 +1,5 @@
 import { renderMain } from "./render/renderMain"
-import { createViewport } from "./state/viewport"
+import { createViewport, type Viewport } from "./state/viewport"
 import type { InfluenceNode } from "./state/nodes"
 import "./style.css"
 import { createTracers, stepTracers } from "./field/tracers"
@@ -207,7 +207,20 @@ canvas.addEventListener("mouseleave", () => {
   if (posLabel) posLabel.textContent = "Cursor: –"
 })
 
+function screenToWorld(x: number, y: number, viewport: Viewport) {
+  return {
+    x: (x - viewport.offsetX) / viewport.scale,
+    y: (y - viewport.offsetY) / viewport.scale,
+  }
+}
+
+// use canvas center as a safe default click position for now
+const clickX = canvas.width / 2
+const clickY = canvas.height / 2
+
 // now in world coords
+// temporary cards positions
+const worldPos = screenToWorld(clickX, clickY, viewport)
 const nodes: InfluenceNode[] = [
   {
     id: "n1",
@@ -218,6 +231,8 @@ const nodes: InfluenceNode[] = [
     force: 30,
     radius: 250,
     falloff: "smooth",
+    cardX: worldPos.x + 200,
+    cardY: worldPos.y + 100,
   },
   {
     id: "n2",
@@ -228,6 +243,8 @@ const nodes: InfluenceNode[] = [
     force: 11,
     radius: 250,
     falloff: "linear",
+    cardX: worldPos.x - 300,
+    cardY: worldPos.y - 150,
   },
   {
     id: "n3",
@@ -238,6 +255,8 @@ const nodes: InfluenceNode[] = [
     force: 3,
     radius: 250,
     falloff: "smooth",
+    cardX: worldPos.x - 200,
+    cardY: worldPos.y - 90,
   },
   {
     id: "n4",
@@ -247,6 +266,8 @@ const nodes: InfluenceNode[] = [
     force: 3,
     radius: 50,
     falloff: "smooth",
+    cardX: worldPos.x + 150,
+    cardY: worldPos.y + 200,
   },
 ]
 
