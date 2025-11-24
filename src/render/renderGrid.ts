@@ -1,4 +1,4 @@
-import type { Viewport } from "../viewport/viewportState"
+import type { Viewport } from "../state/viewport"
 
 export function renderGrid(
   viewport: Viewport,

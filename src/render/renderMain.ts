@@ -1,6 +1,6 @@
 import type { Tracer } from "../field/tracers"
 import type { InfluenceNode } from "../state/nodes"
-import type { Viewport } from "../viewport/viewportState"
+import type { Viewport } from "../state/viewport"
 import { renderGrid } from "./renderGrid"
 import { renderTracers } from "./renderTracers"
 import { renderVectorField } from "./renderVectorField"

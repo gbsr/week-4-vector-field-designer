@@ -1,6 +1,6 @@
 import type { InfluenceNode } from "../state/nodes"
 import { evaluateField } from "./evaluateField"
-import type { Viewport } from "../viewport/viewportState"
+import type { Viewport } from "../state/viewport"
 
 export interface TracerPoint {
   x: number

@@ -1,5 +1,5 @@
 import { renderMain } from "./render/renderMain"
-import { createViewport } from "./viewport/viewportState"
+import { createViewport } from "./state/viewport"
 import type { InfluenceNode } from "./state/nodes"
 import "./style.css"
 import { createTracers, stepTracers } from "./field/tracers"
