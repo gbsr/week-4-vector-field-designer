@@ -207,6 +207,16 @@ canvas.addEventListener("mouseleave", () => {
   if (posLabel) posLabel.textContent = "Cursor: –"
 })
 
+canvas.addEventListener("dblclick", (e) => {
+  const rect = canvas.getBoundingClientRect()
+  const mouseX = e.clientX - rect.left
+  const mouseY = e.clientY - rect.top
+
+  const worldX = (mouseX - viewport.offsetX) / viewport.scale
+  const worldY = (mouseY - viewport.offsetY) / viewport.scale
+  console.log(`Double click at world coords: (${worldX}, ${worldY})`)
+})
+
 function screenToWorld(x: number, y: number, viewport: Viewport) {
   return {
     x: (x - viewport.offsetX) / viewport.scale,
