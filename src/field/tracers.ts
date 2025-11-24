@@ -23,7 +23,6 @@ export function createTracers(
   const tracers: Tracer[] = []
 
   for (let i = 0; i < count; i++) {
-    // pick a random node to spawn near
     const node = nodes[Math.floor(Math.random() * nodes.length)]
 
     // spawn inside the node's radius
@@ -39,7 +38,7 @@ export function createTracers(
         y: spawnY,
       },
       history: [],
-      speed: speed,
+      speed,
       maxHistory: length,
     })
   }
@@ -68,8 +67,8 @@ export function stepTracers(
     const field = evaluateField(x, y, nodes)
     const fieldLength = Math.hypot(field.vx, field.vy)
 
-    // if field is invalid or zero here, respawn around a node
-    if (!Number.isFinite(fieldLength) || fieldLength === 0) {
+    // If field is NaN/Infinity -> respawn
+    if (!Number.isFinite(fieldLength)) {
       const node = nodes[Math.floor(Math.random() * nodes.length)]
       const angle = Math.random() * Math.PI * 2
       const radius = Math.random() * node.radius
@@ -80,14 +79,21 @@ export function stepTracers(
       continue
     }
 
-    const directionX = field.vx / fieldLength
-    const directionY = field.vy / fieldLength
+    // Compute new position.
+    // If fieldLength === 0, don't move this frame (no force outside nodes).
+    let newX = x
+    let newY = y
 
-    const moveX = directionX * tracer.speed * deltaSeconds
-    const moveY = directionY * tracer.speed * deltaSeconds
+    if (fieldLength > 0) {
+      const directionX = field.vx / fieldLength
+      const directionY = field.vy / fieldLength
 
-    const newX = x + moveX
-    const newY = y + moveY
+      const moveX = directionX * tracer.speed * deltaSeconds
+      const moveY = directionY * tracer.speed * deltaSeconds
+
+      newX = x + moveX
+      newY = y + moveY
+    }
 
     // Add current position to history before moving
     tracer.history.push({ x, y })
@@ -95,24 +101,7 @@ export function stepTracers(
       tracer.history.shift()
     }
 
-    const isOffscreen =
-      newX < worldLeft ||
-      newX > worldRight ||
-      newY < worldTop ||
-      newY > worldBottom
-
-    if (isOffscreen) {
-      const node = nodes[Math.floor(Math.random() * nodes.length)]
-      const angle = Math.random() * Math.PI * 2
-      const radius = Math.random() * node.radius
-
-      tracer.position.x = node.x + Math.cos(angle) * radius
-      tracer.position.y = node.y + Math.sin(angle) * radius
-      tracer.history = []
-      continue
-    }
-
-    // Decide if the tail (oldest history point) is still inside any node radius
+    // check tail first: is the oldest history point still inside any node radius?
     let tailInsideAnyNode = false
     const tail = tracer.history[0]
 
@@ -129,8 +118,26 @@ export function stepTracers(
       }
     }
 
-    // If the entire trail has left all node radii, respawn
-    if (!tailInsideAnyNode && tail) {
+    // tail left all node radii -> respawn
+    if (tail && !tailInsideAnyNode) {
+      const node = nodes[Math.floor(Math.random() * nodes.length)]
+      const angle = Math.random() * Math.PI * 2
+      const radius = Math.random() * node.radius
+
+      tracer.position.x = node.x + Math.cos(angle) * radius
+      tracer.position.y = node.y + Math.sin(angle) * radius
+      tracer.history = []
+      continue
+    }
+
+    // check offscreen after tail logic
+    const isOffscreen =
+      newX < worldLeft ||
+      newX > worldRight ||
+      newY < worldTop ||
+      newY > worldBottom
+
+    if (isOffscreen) {
       const node = nodes[Math.floor(Math.random() * nodes.length)]
       const angle = Math.random() * Math.PI * 2
       const radius = Math.random() * node.radius
