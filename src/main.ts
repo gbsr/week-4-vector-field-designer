@@ -207,6 +207,28 @@ canvas.addEventListener("mouseleave", () => {
   if (posLabel) posLabel.textContent = "Cursor: –"
 })
 
+function createNewNodeAt(worldX: number, worldY: number) {
+  console.log(`Creating new node at (${worldX}, ${worldY})`)
+
+  const cardDistance = 150
+  const angle = Math.random() * Math.PI * 2
+
+  const cardX = worldX + Math.cos(angle) * cardDistance
+  const cardY = worldY + Math.sin(angle) * cardDistance
+
+  nodes.push({
+    id: `n${nodes.length + 1}`,
+    kind: "attract",
+    x: worldX,
+    y: worldY,
+    force: 10,
+    radius: 100,
+    falloff: "smooth",
+    cardX,
+    cardY,
+  })
+}
+
 canvas.addEventListener("dblclick", (e) => {
   const rect = canvas.getBoundingClientRect()
   const mouseX = e.clientX - rect.left
@@ -214,6 +236,7 @@ canvas.addEventListener("dblclick", (e) => {
 
   const worldX = (mouseX - viewport.offsetX) / viewport.scale
   const worldY = (mouseY - viewport.offsetY) / viewport.scale
+  createNewNodeAt(worldX, worldY)
   console.log(`Double click at world coords: (${worldX}, ${worldY})`)
 })
 
