@@ -3,7 +3,7 @@ import { createViewport, type Viewport } from "./state/viewport"
 import type { InfluenceNode } from "./state/nodes"
 import "./style.css"
 import { createTracers, stepTracers } from "./field/tracers"
-import { cardHeight, cardWidth } from "./render/renderCards"
+import { cardHeight, cardWidth } from "./render/renderCardComponents"
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <div class="code-container">
@@ -57,6 +57,7 @@ animate();
       <span class="canvas-label" id="zoomLabel">Zoom: 100%</span>
       <span class="canvas-label" id="posLabel">Cursor: –</span>
       <canvas id="canvas"></canvas>
+      <div id="card-layer"></div>
     </div>
 `
 

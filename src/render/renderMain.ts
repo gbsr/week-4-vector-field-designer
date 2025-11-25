@@ -1,7 +1,8 @@
 import type { Tracer } from "../field/tracers"
 import type { InfluenceNode } from "../state/nodes"
 import type { Viewport } from "../state/viewport"
-import { cardHeight, cardWidth, renderCards } from "./renderCards"
+import { renderCardComponents } from "./renderCardComponents"
+import { renderDomCards } from "./renderCards"
 import { renderGrid } from "./renderGrid"
 import { renderTracers } from "./renderTracers"
 import { renderVectorField } from "./renderVectorField"
@@ -34,7 +35,6 @@ export function renderMain(
   renderVectorField(ctx, w, h, 40, nodes, true, 25, viewport)
   renderTracers(ctx, tracers, 1, "rgba(255, 255, 255, 0.9)")
 
-  // render cards for nodes
-
-  renderCards(nodes, ctx, viewport, cardWidth, cardHeight)
+  renderCardComponents(nodes, ctx, viewport)
+  renderDomCards(nodes, viewport)
 }
