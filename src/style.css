@@ -6,6 +6,7 @@ body {
   display: flex;
   height: 100vh;
   width: 100vw;
+  font-family: "Courier New", Courier, monospace;
 }
 
 #app {
@@ -129,20 +130,26 @@ span#posLabel {
   z-index: 1;
 }
 
+.node-wrapper:hover .node-connector {
+  background: #ff4444;
+}
+
 .node-card {
   position: absolute;
   background-color: rgba(0, 0, 0, 0.85);
   border: 1px solid #ffffff;
   color: #ffffff;
-  padding: 4px 8px;
-  font-size: 12px;
-  border-radius: 4px;
-  width: 80px;
-  height: 40px;
+  padding: 16px;
+  font-size: 14px;
+  border-radius: 10px;
   cursor: grab;
   pointer-events: auto;
   z-index: 3;
   transition: 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100px;
 }
 
 .node-card.dragging {
@@ -152,4 +159,31 @@ span#posLabel {
 .node-card:hover {
   background-color: #aa2222;
   transition: 0.15s;
+}
+
+select {
+  background-color: #222;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+}
+
+input[type="number"] {
+  background-color: #222;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+  padding: 0px;
+}
+
+span {
+  font-size: 12px;
+}
+
+.node-card-radius-input {
+  margin-bottom: 10px;
 }
