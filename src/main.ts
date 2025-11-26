@@ -104,7 +104,13 @@ window.addEventListener("resize", () => {
   resizeCanvas()
 })
 
-// viewport (used by pan/zoom + render)
+// Drag flag exposed to DOM-card code
+let isDraggingNodeOrCard = false
+
+export function setIsDraggingNodeOrCard(isDragging: boolean) {
+  isDraggingNodeOrCard = isDragging
+}
+
 const viewport = createViewport()
 
 // drag state, will be refactored into proper state management later
@@ -138,6 +144,7 @@ canvas.addEventListener("mousedown", (e) => {
       dragNode = node
       dragOffsetX = world.x - node.x
       dragOffsetY = world.y - node.y
+      isDraggingNodeOrCard = true
       return
     }
   }
@@ -154,6 +161,7 @@ canvas.addEventListener("mousedown", (e) => {
       dragNode = node
       dragOffsetX = world.x - node.cardX
       dragOffsetY = world.y - node.cardY
+      isDraggingNodeOrCard = true
       return
     }
   }
@@ -198,11 +206,13 @@ window.addEventListener("mousemove", (e) => {
 window.addEventListener("mouseup", () => {
   dragMode = "none"
   dragNode = null
+  isDraggingNodeOrCard = false
 })
 
 window.addEventListener("mouseleave", () => {
   dragMode = "none"
   dragNode = null
+  isDraggingNodeOrCard = false
 })
 
 canvas.addEventListener(
@@ -377,17 +387,19 @@ function loop(timestamp: number) {
 
   const deltaSeconds = deltaMs / 1000
 
-  // Update tracer positions according to the field
-  stepTracers(
-    tracers,
-    nodes,
-    deltaSeconds,
-    viewport,
-    canvas.width,
-    canvas.height
-  )
+  // Skip tracer stepping while dragging nodes/cards to keep drag snappy
+  if (!isDraggingNodeOrCard) {
+    stepTracers(
+      tracers,
+      nodes,
+      deltaSeconds,
+      viewport,
+      canvas.width,
+      canvas.height
+    )
+  }
 
-  // Render everything for this frame
+  // Always redraw: grid + arrows + tracers + DOM cards
   renderMain(canvas, ctx!, viewport, nodes, tracers, 180, 90)
 
   requestAnimationFrame(loop)

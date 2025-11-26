@@ -1,4 +1,4 @@
-// render/renderDomCards.ts
+import { setIsDraggingNodeOrCard } from "../main"
 import type { InfluenceNode } from "../state/nodes"
 import type { Viewport } from "../state/viewport"
 
@@ -12,7 +12,7 @@ export function renderDomCards(nodes: InfluenceNode[], viewport: Viewport) {
     )
 
     if (!wrapper) {
-      wrapper = createWrapperForNode(layer, node)
+      wrapper = createWrapperForNode(layer, node, viewport)
     }
 
     const {
@@ -40,7 +40,8 @@ export function renderDomCards(nodes: InfluenceNode[], viewport: Viewport) {
 
 function createWrapperForNode(
   layer: HTMLElement,
-  node: InfluenceNode
+  node: InfluenceNode,
+  viewport: Viewport
 ): HTMLDivElement {
   const wrapper = document.createElement("div")
   wrapper.className = "node-wrapper"
@@ -135,12 +136,8 @@ function createWrapperForNode(
 
   typeSelect.addEventListener("change", () => {
     node.kind = typeSelect.value as InfluenceNode["kind"]
-    if (node.kind !== "flow") {
-      node.directionDeg = undefined
-    }
-    if (node.kind !== "vortex") {
-      node.spin = undefined
-    }
+    if (node.kind !== "flow") node.directionDeg = undefined
+    if (node.kind !== "vortex") node.spin = undefined
   })
 
   forceInput.addEventListener("change", () => {
@@ -162,6 +159,88 @@ function createWrapperForNode(
     if (value === "linear" || value === "smooth") {
       node.falloff = value
     }
+  })
+
+  // drag card
+
+  card.addEventListener("mousedown", (e) => {
+    const target = e.target as HTMLElement
+
+    // If we clicked on a control, don't start drag
+    if (
+      target.tagName === "INPUT" ||
+      target.tagName === "SELECT" ||
+      target.tagName === "OPTION" ||
+      target.tagName === "BUTTON" ||
+      target.tagName === "TEXTAREA"
+    ) {
+      return
+    }
+
+    // Only now do we actually treat it as a drag start
+    e.stopPropagation()
+    e.preventDefault()
+
+    setIsDraggingNodeOrCard(true)
+
+    const startClientX = e.clientX
+    const startClientY = e.clientY
+    const startCardWorldX = node.cardX
+    const startCardWorldY = node.cardY
+
+    const onMove = (moveEvent: MouseEvent) => {
+      const dxScreen = moveEvent.clientX - startClientX
+      const dyScreen = moveEvent.clientY - startClientY
+
+      const dxWorld = dxScreen / viewport.scale
+      const dyWorld = dyScreen / viewport.scale
+
+      node.cardX = startCardWorldX + dxWorld
+      node.cardY = startCardWorldY + dyWorld
+    }
+
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove)
+      window.removeEventListener("mouseup", onUp)
+      setIsDraggingNodeOrCard(false)
+    }
+
+    window.addEventListener("mousemove", onMove)
+    window.addEventListener("mouseup", onUp)
+  })
+
+  // drag dot
+
+  dot.addEventListener("mousedown", (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+
+    setIsDraggingNodeOrCard(true)
+
+    const startClientX = e.clientX
+    const startClientY = e.clientY
+    const startNodeWorldX = node.x
+    const startNodeWorldY = node.y
+
+    const onMove = (moveEvent: MouseEvent) => {
+      const dxScreen = moveEvent.clientX - startClientX
+      const dyScreen = moveEvent.clientY - startClientY
+
+      const dxWorld = dxScreen / viewport.scale
+      const dyWorld = dyScreen / viewport.scale
+
+      node.x = startNodeWorldX + dxWorld
+      node.y = startNodeWorldY + dyWorld
+    }
+
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove)
+      window.removeEventListener("mouseup", onUp)
+      setIsDraggingNodeOrCard(false)
+    }
+
+    window.addEventListener("mousemove", onMove)
+    window.addEventListener("mouseup", onUp)
   })
 
   return wrapper
