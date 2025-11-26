@@ -109,9 +109,29 @@ span#posLabel {
   left: 0;
 }
 
+.node-dot {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background-color: #aa2222;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: grab;
+  z-index: 2;
+}
+
+.node-connector {
+  position: absolute;
+  height: 1px;
+  background-color: #ccc;
+  transform-origin: 0 50%;
+  z-index: 1;
+}
+
 .node-card {
   position: absolute;
-  background: rgba(0, 0, 0, 0.85);
+  background-color: rgba(0, 0, 0, 0.85);
   border: 1px solid #ffffff;
   color: #ffffff;
   padding: 4px 8px;
@@ -119,4 +139,17 @@ span#posLabel {
   border-radius: 4px;
   width: 80px;
   height: 40px;
+  cursor: grab;
+  pointer-events: auto;
+  z-index: 3;
+  transition: 0.15s;
+}
+
+.node-card.dragging {
+  cursor: grabbing;
+}
+
+.node-card:hover {
+  background-color: #aa2222;
+  transition: 0.15s;
 }
