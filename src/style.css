@@ -178,6 +178,19 @@ span#posLabel {
   color: #ff8888;
 }
 
+.hideCardsButton {
+  position: absolute;
+  top: 40px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #888;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 4;
+}
+
 select {
   background-color: #222;
   color: #fff;
