@@ -5,11 +5,10 @@ let fadeOutDuration = 6 // in seconds
 export function renderTracers(
   ctx: CanvasRenderingContext2D,
   tracers: Tracer[],
-  lineWidth: number,
+  baseLineWidth: number,
   strokeStyle = "rgba(255, 255, 255, 0.9)"
 ) {
   ctx.save()
-  ctx.lineWidth = lineWidth
 
   // we assume strokeStyle is an rgba() string and reuse its RGB part
   // e.g. "rgba(255, 255, 255, 0.9)" -> "rgba(255, 255, 255"
@@ -37,10 +36,22 @@ export function renderTracers(
       }
     }
 
-    ctx.strokeStyle =
-      rgbaMatch && alpha >= 0 && alpha <= 1
-        ? `${rgbPrefix}, ${alpha})`
-        : strokeStyle
+    let lineWidth = baseLineWidth + Math.random() * 40.2
+    // per-tracer width / cap, fallback to function argument
+    ctx.lineWidth = tracer.lineWidth ?? lineWidth
+    ctx.lineCap = tracer.lineCap ?? "round"
+
+    // per-tracer color (if present) or fallback strokeStyle
+    if (tracer.color) {
+      ctx.strokeStyle = tracer.color
+      ctx.globalAlpha = alpha
+    } else {
+      ctx.strokeStyle =
+        rgbaMatch && alpha >= 0 && alpha <= 1
+          ? `${rgbPrefix}, ${alpha})`
+          : strokeStyle
+      ctx.globalAlpha = 1
+    }
 
     ctx.beginPath()
     const first = tracer.history[0]
@@ -57,5 +68,6 @@ export function renderTracers(
     ctx.stroke()
   }
 
+  ctx.globalAlpha = 1
   ctx.restore()
 }

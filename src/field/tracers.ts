@@ -16,12 +16,16 @@ export interface Tracer {
   maxHistory: number
   age: number
   maxAge: number
+  color: string
+  lineWidth: number
+  lineCap: CanvasLineCap
 }
 
 export function createTracers(
   count: number,
   speed: number,
   length: number,
+  lineWidth: number,
   nodes: InfluenceNode[]
 ): Tracer[] {
   const tracers: Tracer[] = []
@@ -29,7 +33,6 @@ export function createTracers(
   for (let i = 0; i < count; i++) {
     const node = nodes[Math.floor(Math.random() * nodes.length)]
 
-    // spawn inside the node's radius
     const angle = Math.random() * Math.PI * 2
     const radius = Math.random() * node.radius
 
@@ -46,6 +49,10 @@ export function createTracers(
       maxHistory: length,
       age: 0,
       maxAge: MAX_AGE,
+
+      color: `hsl(${Math.random() * 360}, 70%, 70%)`,
+      lineWidth: lineWidth + Math.random() * 2.2,
+      lineCap: Math.random() < 0.5 ? "round" : "butt",
     })
   }
 
@@ -64,6 +71,7 @@ function respawnInRandomNode(tracer: Tracer, nodes: InfluenceNode[]) {
   tracer.history = []
   tracer.age = 0
   tracer.maxAge = MAX_AGE
+  tracer.lineWidth = tracer.lineWidth + Math.random() * 2.2
 }
 
 // --- main step ---
