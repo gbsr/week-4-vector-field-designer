@@ -366,58 +366,21 @@ const clickY = canvas.height / 2
 const worldPos = screenToWorld(clickX, clickY, viewport)
 
 // push initial nodes to appstate
-nodes.push(
-  {
-    id: "n1",
-    kind: "vortex",
-    spin: "ccw",
-    x: -50,
-    y: 0,
-    force: 30,
-    radius: 250,
-    falloff: "smooth",
-    cardX: worldPos.x + 200,
-    cardY: worldPos.y + 100,
-  },
-  {
-    id: "n2",
-    kind: "flow",
-    directionDeg: 55,
-    x: 25,
-    y: 0,
-    force: 11,
-    radius: 250,
-    falloff: "linear",
-    cardX: worldPos.x - 300,
-    cardY: worldPos.y - 150,
-  },
-  {
-    id: "n3",
-    kind: "flow",
-    directionDeg: 135,
-    x: -250,
-    y: 0,
-    force: 3,
-    radius: 250,
-    falloff: "smooth",
-    cardX: worldPos.x - 200,
-    cardY: worldPos.y - 90,
-  },
-  {
-    id: "n4",
-    kind: "repel",
-    x: 40,
-    y: -150,
-    force: 3,
-    radius: 50,
-    falloff: "smooth",
-    cardX: worldPos.x + 150,
-    cardY: worldPos.y + 200,
-  }
-)
+nodes.push({
+  id: "n1",
+  kind: "vortex",
+  spin: "ccw",
+  x: -50,
+  y: 0,
+  force: 1,
+  radius: 380,
+  falloff: "smooth",
+  cardX: worldPos.x + 300,
+  cardY: worldPos.y + 100,
+})
 
 // tracers created from shared nodes, stored in appState too
-const tracers = createTracers(60, 180, 90, nodes)
+const tracers = createTracers(60, 180, 90, 4, nodes)
 appState.tracers = tracers
 
 let lastTimestamp = performance.now()
