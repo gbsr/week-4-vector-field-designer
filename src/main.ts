@@ -1,9 +1,10 @@
 import { renderMain } from "./render/renderMain"
-import { createViewport, type Viewport } from "./state/viewport"
+import type { Viewport } from "./state/viewport"
 import type { InfluenceNode } from "./state/nodes"
 import "./style.css"
 import { createTracers, stepTracers } from "./field/tracers"
 import { cardHeight, cardWidth } from "./render/renderCardComponents"
+import { appState } from "./state/appState" // NEW
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <div class="code-container">
@@ -111,7 +112,8 @@ export function setIsDraggingNodeOrCard(isDragging: boolean) {
   isDraggingNodeOrCard = isDragging
 }
 
-const viewport = createViewport()
+// use shared viewport from appState instead of local one
+const viewport = appState.viewport
 
 // drag state, will be refactored into proper state management later
 type DragMode = "none" | "pan" | "node" | "card"
@@ -127,6 +129,9 @@ let lastPanY = 0
 viewport.offsetX = canvas.width / 2
 viewport.offsetY = canvas.height / 2
 viewport.scale = 1
+
+// shared nodes array from appState
+const nodes: InfluenceNode[] = appState.nodes
 
 canvas.addEventListener("mousedown", (e) => {
   const rect = canvas.getBoundingClientRect()
@@ -327,7 +332,9 @@ const clickY = canvas.height / 2
 // now in world coords
 // temporary cards positions
 const worldPos = screenToWorld(clickX, clickY, viewport)
-const nodes: InfluenceNode[] = [
+
+// push initial nodes to appstate
+nodes.push(
   {
     id: "n1",
     kind: "vortex",
@@ -374,10 +381,12 @@ const nodes: InfluenceNode[] = [
     falloff: "smooth",
     cardX: worldPos.x + 150,
     cardY: worldPos.y + 200,
-  },
-]
+  }
+)
 
+// tracers created from shared nodes, stored in appState too
 const tracers = createTracers(60, 180, 90, nodes)
+appState.tracers = tracers
 
 let lastTimestamp = performance.now()
 
