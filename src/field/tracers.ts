@@ -2,6 +2,8 @@ import type { InfluenceNode } from "../state/nodes"
 import { evaluateField } from "./evaluateField"
 import type { Viewport } from "../state/viewport"
 
+const MAX_AGE = 20 + Math.random() * 10 // 20–30 seconds
+
 export interface TracerPoint {
   x: number
   y: number
@@ -12,6 +14,8 @@ export interface Tracer {
   history: TracerPoint[]
   speed: number
   maxHistory: number
+  age: number
+  maxAge: number
 }
 
 export function createTracers(
@@ -40,6 +44,8 @@ export function createTracers(
       history: [],
       speed,
       maxHistory: length,
+      age: 0,
+      maxAge: MAX_AGE,
     })
   }
 
@@ -56,6 +62,8 @@ function respawnInRandomNode(tracer: Tracer, nodes: InfluenceNode[]) {
   tracer.position.x = node.x + Math.cos(angle) * radius
   tracer.position.y = node.y + Math.sin(angle) * radius
   tracer.history = []
+  tracer.age = 0
+  tracer.maxAge = MAX_AGE
 }
 
 // --- main step ---
@@ -79,6 +87,13 @@ export function stepTracers(
 
   for (const tracer of tracers) {
     const { x, y } = tracer.position
+
+    // lifetime: kill and respawn after maxAge seconds
+    tracer.age += deltaSeconds
+    if (tracer.age > tracer.maxAge) {
+      respawnInRandomNode(tracer, nodes)
+      continue
+    }
 
     const field = evaluateField(x, y, nodes)
     const fieldLength = Math.hypot(field.vx, field.vy)
