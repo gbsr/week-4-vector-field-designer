@@ -56,6 +56,7 @@ animate();
     <div class="canvas-container">
       <span class="canvas-label">Zoom: Mouse Wheel | Pan: Drag</span>
       <span class="canvas-label" id="zoomLabel">Zoom: 100%</span>
+      <button class="hideCardsButton" id="hideCardsButton" title="Hide Cards">Toggle Cards</button>
       <span class="canvas-label" id="posLabel">Cursor: –</span>
       <canvas id="canvas"></canvas>
       <div id="card-layer"></div>
@@ -76,6 +77,19 @@ copyButton?.addEventListener("click", () => {
       .catch((err) => {
         console.error("Failed to copy text: ", err)
       })
+  }
+})
+
+const hideCardsButton = document.getElementById("hideCardsButton")
+let cardsVisible = true
+hideCardsButton?.addEventListener("click", () => {
+  cardsVisible = !cardsVisible
+  if (cardsVisible) {
+    showCardsForAllNodes()
+    hideCardsButton.title = "Hide Cards"
+  } else {
+    hideCardsForAllNodes()
+    hideCardsButton.title = "Show Cards"
   }
 })
 
@@ -305,6 +319,24 @@ function createNewNodeAt(worldX: number, worldY: number) {
     cardX,
     cardY,
   })
+}
+
+function hideCardsForAllNodes() {
+  const cardLayer = document.getElementById("card-layer")
+  if (cardLayer) {
+    cardLayer.style.display = "none"
+  }
+}
+
+function showCardsForAllNodes() {
+  const cardLayer = document.getElementById("card-layer")
+  if (cardLayer) {
+    cardLayer.style.display = "block"
+  }
+}
+
+function toggleArrowsVisibility() {
+  appState.showArrows = !appState.showArrows
 }
 
 canvas.addEventListener("dblclick", (e) => {
