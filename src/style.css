@@ -137,7 +137,7 @@ span#posLabel {
 .node-card {
   position: absolute;
   background-color: rgba(0, 0, 0, 0.85);
-  border: 1px solid #ffffff;
+  border: 1px solid #565656;
   color: #ffffff;
   padding: 16px;
   font-size: 14px;
@@ -159,6 +159,23 @@ span#posLabel {
 .node-card:hover {
   background-color: #aa2222;
   transition: 0.15s;
+}
+
+.node-card-delete {
+  position: absolute;
+  top: 0px;
+  right: 4px;
+  border: none;
+  background: transparent;
+  color: #f55;
+  padding-block: 0px;
+  padding-inline: 4px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.node-card-delete:hover {
+  color: #ff8888;
 }
 
 select {

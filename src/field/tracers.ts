@@ -46,6 +46,20 @@ export function createTracers(
   return tracers
 }
 
+// helper: respawn inside a random node radius
+
+function respawnInRandomNode(tracer: Tracer, nodes: InfluenceNode[]) {
+  const node = nodes[Math.floor(Math.random() * nodes.length)]
+  const angle = Math.random() * Math.PI * 2
+  const radius = Math.random() * node.radius
+
+  tracer.position.x = node.x + Math.cos(angle) * radius
+  tracer.position.y = node.y + Math.sin(angle) * radius
+  tracer.history = []
+}
+
+// --- main step ---
+
 export function stepTracers(
   tracers: Tracer[],
   nodes: InfluenceNode[],
@@ -54,101 +68,105 @@ export function stepTracers(
   canvasWidth: number,
   canvasHeight: number
 ) {
-  // calculate visible world-space bounds
+  // world bounds (used only for tail offscreen check)
   const worldLeft = -viewport.offsetX / viewport.scale
   const worldTop = -viewport.offsetY / viewport.scale
   const worldRight = worldLeft + canvasWidth / viewport.scale
   const worldBottom = worldTop + canvasHeight / viewport.scale
 
+  const MIN_FIELD = 0.001 // basically zero field
+  const SINK_RADIUS = 4 // how close to a node center counts as "converged"
+
   for (const tracer of tracers) {
     const { x, y } = tracer.position
 
-    // Sample field at tracer position
     const field = evaluateField(x, y, nodes)
     const fieldLength = Math.hypot(field.vx, field.vy)
 
-    // If field is NaN/Infinity -> respawn
     if (!Number.isFinite(fieldLength)) {
-      const node = nodes[Math.floor(Math.random() * nodes.length)]
-      const angle = Math.random() * Math.PI * 2
-      const radius = Math.random() * node.radius
-
-      tracer.position.x = node.x + Math.cos(angle) * radius
-      tracer.position.y = node.y + Math.sin(angle) * radius
-      tracer.history = []
+      respawnInRandomNode(tracer, nodes)
       continue
     }
 
-    // Compute new position.
-    // If fieldLength === 0, don't move this frame (no force outside nodes).
     let newX = x
     let newY = y
 
-    if (fieldLength > 0) {
-      const directionX = field.vx / fieldLength
-      const directionY = field.vy / fieldLength
+    if (fieldLength > MIN_FIELD) {
+      const dirX = field.vx / fieldLength
+      const dirY = field.vy / fieldLength
 
-      const moveX = directionX * tracer.speed * deltaSeconds
-      const moveY = directionY * tracer.speed * deltaSeconds
+      const moveX = dirX * tracer.speed * deltaSeconds
+      const moveY = dirY * tracer.speed * deltaSeconds
 
       newX = x + moveX
       newY = y + moveY
     }
 
-    // Add current position to history before moving
     tracer.history.push({ x, y })
     if (tracer.history.length > tracer.maxHistory) {
       tracer.history.shift()
     }
 
-    // check tail first: is the oldest history point still inside any node radius?
-    let tailInsideAnyNode = false
+    tracer.position.x = newX
+    tracer.position.y = newY
+
     const tail = tracer.history[0]
+    if (!tail) continue
 
-    if (tail) {
-      for (const node of nodes) {
-        const dx = tail.x - node.x
-        const dy = tail.y - node.y
-        const distance = Math.hypot(dx, dy)
+    // "sink" check: head + tail both very close to a
+    //    node centre -> tracer has converged, respawn.
+    let inSink = false
 
-        if (distance <= node.radius) {
-          tailInsideAnyNode = true
-          break
-        }
+    for (const node of nodes) {
+      const dxHead = tracer.position.x - node.x
+      const dyHead = tracer.position.y - node.y
+      const distHead = Math.hypot(dxHead, dyHead)
+
+      const dxTail = tail.x - node.x
+      const dyTail = tail.y - node.y
+      const distTail = Math.hypot(dxTail, dyTail)
+
+      if (distHead <= SINK_RADIUS && distTail <= SINK_RADIUS) {
+        inSink = true
+        break
       }
     }
 
-    // tail left all node radii -> respawn
-    if (tail && !tailInsideAnyNode) {
-      const node = nodes[Math.floor(Math.random() * nodes.length)]
-      const angle = Math.random() * Math.PI * 2
-      const radius = Math.random() * node.radius
-
-      tracer.position.x = node.x + Math.cos(angle) * radius
-      tracer.position.y = node.y + Math.sin(angle) * radius
-      tracer.history = []
+    if (inSink) {
+      respawnInRandomNode(tracer, nodes)
       continue
     }
 
-    // check offscreen after tail logic
-    const isOffscreen =
-      newX < worldLeft ||
-      newX > worldRight ||
-      newY < worldTop ||
-      newY > worldBottom
+    // tail radius check:
+    //    whole ribbon has exited the interesting
+    //    field → respawn at a node.
+    let tailInsideAnyNode = false
 
-    if (isOffscreen) {
-      const node = nodes[Math.floor(Math.random() * nodes.length)]
-      const angle = Math.random() * Math.PI * 2
-      const radius = Math.random() * node.radius
+    for (const node of nodes) {
+      const dx = tail.x - node.x
+      const dy = tail.y - node.y
+      const dist = Math.hypot(dx, dy)
 
-      tracer.position.x = node.x + Math.cos(angle) * radius
-      tracer.position.y = node.y + Math.sin(angle) * radius
-      tracer.history = []
+      if (dist <= node.radius) {
+        tailInsideAnyNode = true
+        break
+      }
+    }
+
+    if (!tailInsideAnyNode) {
+      respawnInRandomNode(tracer, nodes)
       continue
     }
 
-    tracer.position.x = newX
-    tracer.position.y = newY
+    const tailOffscreen =
+      tail.x < worldLeft ||
+      tail.x > worldRight ||
+      tail.y < worldTop ||
+      tail.y > worldBottom
+
+    if (tailOffscreen) {
+      respawnInRandomNode(tracer, nodes)
+      continue
+    }
   }
 }

@@ -12,7 +12,7 @@ export function renderDomCards(nodes: InfluenceNode[], viewport: Viewport) {
     )
 
     if (!wrapper) {
-      wrapper = createWrapperForNode(layer, node, viewport)
+      wrapper = createWrapperForNode(layer, node, viewport, nodes)
     }
 
     const {
@@ -41,7 +41,8 @@ export function renderDomCards(nodes: InfluenceNode[], viewport: Viewport) {
 function createWrapperForNode(
   layer: HTMLElement,
   node: InfluenceNode,
-  viewport: Viewport
+  viewport: Viewport,
+  nodes: InfluenceNode[]
 ): HTMLDivElement {
   const wrapper = document.createElement("div")
   wrapper.className = "node-wrapper"
@@ -76,9 +77,26 @@ function createWrapperForNode(
   extraRow.className = "node-card-row node-card-extra"
   card.appendChild(extraRow)
 
-  // controls inside rows (created once)
+  // delete button
+  const deleteBtn = document.createElement("button")
+  deleteBtn.type = "button"
+  deleteBtn.className = "node-card-delete"
+  deleteBtn.textContent = "x"
+  card.appendChild(deleteBtn)
 
-  // type: select
+  deleteBtn.addEventListener("click", (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+
+    const index = nodes.indexOf(node)
+    if (index !== -1) {
+      nodes.splice(index, 1)
+    }
+
+    wrapper.remove()
+  })
+
+  // type
   const typeLabel = document.createElement("span")
   typeLabel.textContent = "type:"
   typeLabel.className = "node-card-label"
