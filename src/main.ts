@@ -437,7 +437,7 @@ nodes.push({
   id: "n1",
   kind: "vortex",
   spin: "ccw",
-  x: -50,
+  x: 0,
   y: 0,
   force: 1,
   radius: 380,

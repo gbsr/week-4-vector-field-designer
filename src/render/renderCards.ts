@@ -406,29 +406,43 @@ function updatePositionsAndConnector(
   card: HTMLDivElement,
   connector: HTMLDivElement
 ) {
+  // align card-layer coordinates with canvas coordinates
+  const canvas = document.getElementById("canvas") as HTMLCanvasElement | null
+  const layer = document.getElementById("card-layer") as HTMLDivElement | null
+
+  let offsetX = 0
+  let offsetY = 0
+
+  if (canvas && layer) {
+    const canvasRect = canvas.getBoundingClientRect()
+    const layerRect = layer.getBoundingClientRect()
+    offsetX = canvasRect.left - layerRect.left
+    offsetY = canvasRect.top - layerRect.top
+  }
+
   const dotScreen = worldToScreen(node.x, node.y, viewport)
   const cardTopLeft = worldToScreen(node.cardX, node.cardY, viewport)
 
   // card: top-left
-  card.style.left = `${cardTopLeft.sx}px`
-  card.style.top = `${cardTopLeft.sy}px`
+  card.style.left = `${cardTopLeft.sx + offsetX}px`
+  card.style.top = `${cardTopLeft.sy + offsetY}px`
 
   // dot center
-  dot.style.left = `${dotScreen.sx}px`
-  dot.style.top = `${dotScreen.sy}px`
+  dot.style.left = `${dotScreen.sx + offsetX}px`
+  dot.style.top = `${dotScreen.sy + offsetY}px`
 
   // card center
-  const cardCenterX = cardTopLeft.sx + card.offsetWidth / 2
-  const cardCenterY = cardTopLeft.sy + card.offsetHeight / 2
+  const cardCenterX = cardTopLeft.sx + offsetX + card.offsetWidth / 2
+  const cardCenterY = cardTopLeft.sy + offsetY + card.offsetHeight / 2
 
   // connector line
-  const dx = cardCenterX - dotScreen.sx
-  const dy = cardCenterY - dotScreen.sy
+  const dx = cardCenterX - (dotScreen.sx + offsetX)
+  const dy = cardCenterY - (dotScreen.sy + offsetY)
   const length = Math.sqrt(dx * dx + dy * dy)
   const angle = Math.atan2(dy, dx)
 
-  connector.style.left = `${dotScreen.sx}px`
-  connector.style.top = `${dotScreen.sy}px`
+  connector.style.left = `${dotScreen.sx + offsetX}px`
+  connector.style.top = `${dotScreen.sy + offsetY}px`
   connector.style.width = `${length}px`
   connector.style.transform = `rotate(${angle}rad)`
 }
