@@ -2,7 +2,14 @@ import type { InfluenceNode } from "../state/nodes"
 import { evaluateField } from "./evaluateField"
 import type { Viewport } from "../state/viewport"
 
-const MAX_AGE = 20 + Math.random() * 10 // 20–30 seconds
+// lifetime range, in seconds (default 20–30)
+let TRACER_LIFETIME_MIN = 20
+let TRACER_LIFETIME_MAX = 30
+
+export function setTracerLifetimeRange(min: number, max: number) {
+  TRACER_LIFETIME_MIN = Math.max(0.1, Math.min(min, max))
+  TRACER_LIFETIME_MAX = Math.max(TRACER_LIFETIME_MIN, max)
+}
 
 export interface TracerPoint {
   x: number
@@ -19,6 +26,11 @@ export interface Tracer {
   color: string
   lineWidth: number
   lineCap: CanvasLineCap
+}
+
+function randomLifetime(): number {
+  const span = TRACER_LIFETIME_MAX - TRACER_LIFETIME_MIN
+  return TRACER_LIFETIME_MIN + Math.random() * span
 }
 
 export function createTracers(
@@ -48,7 +60,7 @@ export function createTracers(
       speed,
       maxHistory: length,
       age: 0,
-      maxAge: MAX_AGE,
+      maxAge: randomLifetime(),
 
       color: `hsl(${Math.random() * 360}, 70%, 70%)`,
       lineWidth: lineWidth + Math.random() * 2.2,
@@ -70,7 +82,7 @@ function respawnInRandomNode(tracer: Tracer, nodes: InfluenceNode[]) {
   tracer.position.y = node.y + Math.sin(angle) * radius
   tracer.history = []
   tracer.age = 0
-  tracer.maxAge = MAX_AGE
+  tracer.maxAge = randomLifetime()
   tracer.lineWidth = tracer.lineWidth + Math.random() * 2.2
 }
 

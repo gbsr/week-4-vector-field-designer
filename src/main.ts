@@ -2,7 +2,11 @@ import { renderMain } from "./render/renderMain"
 import type { Viewport } from "./state/viewport"
 import type { InfluenceNode } from "./state/nodes"
 import "./style.css"
-import { createTracers, stepTracers } from "./field/tracers"
+import {
+  createTracers,
+  stepTracers,
+  setTracerLifetimeRange,
+} from "./field/tracers"
 import { cardHeight, cardWidth } from "./render/renderCardComponents"
 import { appState } from "./state/appState" // NEW
 
@@ -54,9 +58,51 @@ animate();
     </div>
 
     <div class="canvas-container">
-      <span class="canvas-label">Zoom: Mouse Wheel | Pan: Drag</span>
+      <span class="canvas-label">Zoom: Mouse Wheel | Pan: Drag | Dblclick to add new node</span>
       <span class="canvas-label" id="zoomLabel">Zoom: 100%</span>
+      <div class="toggle-row">
       <button class="hideCardsButton" id="hideCardsButton" title="Hide Cards">Toggle Cards</button>
+      <button id="toggleGridButton" title="Toggle grid">Toggle Grid</button>
+      <button id="toggleArrowsButton" title="Toggle arrows">Toggle Arrows</button>
+      </div>
+      <!-- tracer + view controls -->
+      <div class="tracer-controls">
+        <label>
+          Tracer width
+          <input
+            id="tracerWidthInput"
+            type="range"
+            min="1"
+            max="20"
+            step="0.1"
+            value="4"
+          />
+        </label>
+        <label>
+          Tracer length
+          <input
+            id="tracerLengthInput"
+            type="range"
+            min="1"
+            max="2000"
+            step="1"
+            value="25"
+          />
+        </label>
+        <label>
+          Tracer lifetime (s)
+          <input
+            id="tracerLifetimeInput"
+            type="range"
+            min="0.25"
+            max="100"
+            step="1"
+            value="3"
+          />
+        </label>
+       
+      </div>
+
       <span class="canvas-label" id="posLabel">Cursor: –</span>
       <canvas id="canvas"></canvas>
       <div id="card-layer"></div>
@@ -92,6 +138,23 @@ hideCardsButton?.addEventListener("click", () => {
     hideCardsButton.title = "Show Cards"
   }
 })
+
+// tracer + view controls refs
+const tracerWidthInput = document.getElementById(
+  "tracerWidthInput"
+) as HTMLInputElement | null
+const tracerLengthInput = document.getElementById(
+  "tracerLengthInput"
+) as HTMLInputElement | null
+const tracerLifetimeInput = document.getElementById(
+  "tracerLifetimeInput"
+) as HTMLInputElement | null
+const toggleGridButton = document.getElementById(
+  "toggleGridButton"
+) as HTMLButtonElement | null
+const toggleArrowsButton = document.getElementById(
+  "toggleArrowsButton"
+) as HTMLButtonElement | null
 
 // setup canvas
 const canvasElement = document.querySelector<HTMLCanvasElement>("#canvas")
@@ -138,6 +201,10 @@ let dragOffsetX = 0
 let dragOffsetY = 0
 let lastPanX = 0
 let lastPanY = 0
+let tracerCount = 60
+let tracerSpeed = 180
+let tracerLength = 90
+let tracerBaseWidth = 4
 
 // center world origin (0,0) in the middle of the canvas
 viewport.offsetX = canvas.width / 2
@@ -380,8 +447,71 @@ nodes.push({
 })
 
 // tracers created from shared nodes, stored in appState too
-const tracers = createTracers(60, 180, 90, 4, nodes)
+const tracers = createTracers(
+  tracerCount,
+  tracerSpeed,
+  tracerLength,
+  tracerBaseWidth,
+  nodes
+)
 appState.tracers = tracers
+
+// helper to rebuild tracers when settings change
+function rebuildTracers() {
+  tracers.length = 0
+  const fresh = createTracers(
+    tracerCount,
+    tracerSpeed,
+    tracerLength,
+    tracerBaseWidth,
+    nodes
+  )
+  tracers.push(...fresh)
+}
+
+// hook up tracer controls
+if (tracerWidthInput) {
+  tracerWidthInput.value = String(tracerBaseWidth)
+  tracerWidthInput.addEventListener("input", () => {
+    tracerBaseWidth = Number(tracerWidthInput.value) || 1
+    rebuildTracers()
+  })
+}
+
+if (tracerLengthInput) {
+  tracerLengthInput.value = String(tracerLength)
+  tracerLengthInput.addEventListener("input", () => {
+    tracerLength = Number(tracerLengthInput.value) || 10
+    rebuildTracers()
+  })
+}
+
+if (tracerLifetimeInput) {
+  tracerLifetimeInput.value = "25"
+  const initial = Number(tracerLifetimeInput.value)
+  setTracerLifetimeRange(initial * 0.75, initial * 1.25)
+
+  tracerLifetimeInput.addEventListener("input", () => {
+    const centre = Number(tracerLifetimeInput.value) || 10
+    const min = centre * 0.75
+    const max = centre * 1.25
+    setTracerLifetimeRange(min, max)
+    // lifetime only affects future spawns; no need to rebuild
+  })
+}
+
+// grid / arrow toggles
+if (toggleGridButton) {
+  toggleGridButton.addEventListener("click", () => {
+    appState.showGrid = !appState.showGrid
+  })
+}
+
+if (toggleArrowsButton) {
+  toggleArrowsButton.addEventListener("click", () => {
+    appState.showArrows = !appState.showArrows
+  })
+}
 
 let lastTimestamp = performance.now()
 

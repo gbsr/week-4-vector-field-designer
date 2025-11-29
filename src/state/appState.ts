@@ -6,10 +6,14 @@ export interface AppState {
   viewport: Viewport
   nodes: InfluenceNode[]
   tracers: Tracer[]
+  showArrows: boolean
+  showGrid: boolean
 }
 
 export const appState: AppState = {
   viewport: createViewport(),
   nodes: [],
   tracers: [],
+  showArrows: true,
+  showGrid: true,
 }

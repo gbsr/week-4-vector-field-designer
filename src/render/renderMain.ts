@@ -5,6 +5,7 @@ import { renderDomCards } from "./renderCards"
 import { renderGrid } from "./renderGrid"
 import { renderTracers } from "./renderTracers"
 import { renderVectorField } from "./renderVectorField"
+import { appState } from "../state/appState"
 
 export function renderMain(
   canvas: HTMLCanvasElement,
@@ -30,8 +31,14 @@ export function renderMain(
     viewport.offsetY
   )
 
-  renderGrid(viewport, ctx, w, h, 50)
-  renderVectorField(ctx, w, h, 40, nodes, true, 25, viewport)
+  if (appState.showGrid) {
+    renderGrid(viewport, ctx, w, h, 50)
+  }
+
+  if (appState.showArrows) {
+    renderVectorField(ctx, w, h, 40, nodes, true, 25, viewport)
+  }
+
   renderTracers(ctx, tracers, 8.5, "")
 
   renderDomCards(nodes, viewport)
