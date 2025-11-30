@@ -8,7 +8,8 @@ import {
   setTracerLifetimeRange,
 } from "./field/tracers"
 import { cardHeight, cardWidth } from "./render/renderCardComponents"
-import { appState } from "./state/appState" // NEW
+import { appState } from "./state/appState"
+import { generateFieldModule, escapeHtml } from "./generateCode"
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <div class="code-container">
@@ -17,40 +18,6 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
         <div class="code-content">
 
 <!-- test code output here -->
-          
-          <!-- todo: add line numbers to code block -->
-        
-          <code><pre>
-random test code:
-import * as THREE from 'three';
-
-// Scene setup
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-// Create a cube
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
-
-camera.position.z = 5;
-
-// Animation loop
-function animate() {
-  requestAnimationFrame(animate);
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
-  renderer.render(scene, camera);
-}
-
-animate();
-        
-<!-- end test code output -->
-          </pre></code>
         
 
         </div>
@@ -151,14 +118,28 @@ if (appRoot && codeContainer && canvasContainer && splitter) {
   })
 }
 
+// code panel refs + state
+const codeContentDiv = document.querySelector<HTMLDivElement>(".code-content")
+let lastGeneratedCode = ""
+
+// helper to regenerate + render code
+function updateCodeView(nodes: InfluenceNode[]) {
+  if (!codeContentDiv) return
+  const code = generateFieldModule(nodes)
+  lastGeneratedCode = code
+  codeContentDiv.innerHTML = `<pre><code>${escapeHtml(code)}</code></pre>`
+}
+
 const copyButton = document.getElementById("copyButton")
 copyButton?.addEventListener("click", () => {
-  const codeContent = document
-    .querySelector(".code-content")
-    ?.textContent?.trim()
-  if (codeContent) {
+  const codeToCopy =
+    lastGeneratedCode ||
+    document.querySelector(".code-content")?.textContent?.trim() ||
+    ""
+
+  if (codeToCopy) {
     navigator.clipboard
-      .writeText(codeContent)
+      .writeText(codeToCopy)
       .then(() => {
         alert("Code copied to clipboard!")
       })
@@ -574,6 +555,9 @@ function loop(timestamp: number) {
       canvas.height
     )
   }
+
+  // regenerate field code from current nodes
+  updateCodeView(nodes)
 
   // Always redraw: grid + arrows + tracers + DOM cards
   renderMain(canvas, ctx!, viewport, nodes, tracers, 180, 90)
