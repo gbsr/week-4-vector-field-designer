@@ -15,6 +15,49 @@
   border: 2px solid #333;
 }
 
+/* simple code panel theme */
+
+.code-content {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  line-height: 1.5;
+  background: #111;
+  padding: 12px 16px;
+  overflow: auto;
+  margin-left: 30px;
+  margin-right: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 4px;
+  color: #d4d4d4;
+  overflow-y: auto;
+  height: 95%;
+}
+
+/* token colors */
+
+.tok-kw {
+  color: #ff9d00; /* keywords */
+  font-weight: 500;
+}
+
+.tok-type {
+  color: #6ae4ff; /* types/interfaces */
+}
+
+.tok-number {
+  color: #c3e88d;
+}
+
+.tok-string {
+  color: #c792ea;
+}
+
+.tok-comment {
+  color: #5c6773;
+  font-style: italic;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -88,20 +131,6 @@ span#posLabel {
   top: 40px;
   left: auto;
   right: 10px;
-}
-
-.code-content {
-  padding: 20px;
-  margin-left: 30px;
-  margin-right: 10px;
-  font-family: "Courier New", Courier, monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  background-color: #333;
-  border-radius: 4px;
-  color: #d4d4d4;
-  overflow-y: auto;
-  height: 95%;
 }
 
 .canvas-container {

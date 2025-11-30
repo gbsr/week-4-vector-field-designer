@@ -127,3 +127,179 @@ export function evaluateField(pos: Vec2, nodes: InfluenceNode[]): Vec2 {
 // boid.y  += boid.vy * dt
 `
 }
+
+// --- tiny TS/JS highlighter (instead of external libs like Prism.js, so we can run directly in client ^^) ---
+
+const KEYWORDS = new Set([
+  "export",
+  "import",
+  "from",
+  "const",
+  "let",
+  "var",
+  "function",
+  "return",
+  "if",
+  "else",
+  "for",
+  "of",
+  "in",
+  "while",
+  "type",
+  "interface",
+  "extends",
+  "implements",
+  "new",
+  "class",
+  "switch",
+  "case",
+  "break",
+  "default",
+  "as",
+  "number",
+  "string",
+  "boolean",
+  "void",
+  "any",
+  "unknown",
+])
+
+type TokenKind = "plain" | "string" | "comment"
+
+interface Token {
+  kind: TokenKind
+  text: string
+}
+
+function tokenize(code: string): Token[] {
+  const tokens: Token[] = []
+  let current = ""
+  let kind: TokenKind = "plain"
+
+  let i = 0
+  const len = code.length
+
+  function push() {
+    if (!current) return
+    tokens.push({ kind, text: current })
+    current = ""
+  }
+
+  while (i < len) {
+    const ch = code[i]
+    const next = i + 1 < len ? code[i + 1] : ""
+
+    // line comment
+    if (kind === "plain" && ch === "/" && next === "/") {
+      push()
+      kind = "comment"
+      current += ch
+      i++
+      current += code[i]
+      i++
+      // consume until newline
+      while (i < len && code[i] !== "\n") {
+        current += code[i++]
+      }
+      push()
+      kind = "plain"
+      continue
+    }
+
+    // block comment
+    if (kind === "plain" && ch === "/" && next === "*") {
+      push()
+      kind = "comment"
+      current += ch
+      i++
+      current += code[i]
+      i++
+      while (i < len) {
+        const c = code[i]
+        const n = i + 1 < len ? code[i + 1] : ""
+        current += c
+        i++
+        if (c === "*" && n === "/") {
+          current += n
+          i++
+          break
+        }
+      }
+      push()
+      kind = "plain"
+      continue
+    }
+
+    // strings
+    if (kind === "plain" && (ch === '"' || ch === "'" || ch === "`")) {
+      push()
+      const quote = ch
+      kind = "string"
+      current += ch
+      i++
+      while (i < len) {
+        const c = code[i]
+        current += c
+        i++
+        if (c === "\\" && i < len) {
+          // escaped char
+          current += code[i]
+          i++
+          continue
+        }
+        if (c === quote) break
+      }
+      push()
+      kind = "plain"
+      continue
+    }
+
+    current += ch
+    i++
+  }
+  push()
+  return tokens
+}
+
+function highlightPlain(escaped: string): string {
+  // escapeHtml already ran, so we only see plain ASCII, '&lt;', etc.
+  return escaped.replace(
+    /(\b[A-Za-z_][A-Za-z0-9_]*\b|\b\d+(?:\.\d+)?\b)/g,
+    (match) => {
+      // numbers
+      if (/^\d/.test(match)) {
+        return `<span class="tok-number">${match}</span>`
+      }
+
+      // keywords
+      if (KEYWORDS.has(match)) {
+        return `<span class="tok-kw">${match}</span>`
+      }
+
+      // simple guess: Types / interfaces / enums start with uppercase
+      if (/^[A-Z]/.test(match)) {
+        return `<span class="tok-type">${match}</span>`
+      }
+
+      return match
+    }
+  )
+}
+
+export function highlightTs(code: string): string {
+  const tokens = tokenize(code)
+  let out = ""
+
+  for (const t of tokens) {
+    if (t.kind === "comment") {
+      out += `<span class="tok-comment">${escapeHtml(t.text)}</span>`
+    } else if (t.kind === "string") {
+      out += `<span class="tok-string">${escapeHtml(t.text)}</span>`
+    } else {
+      // plain → escape then decorate keywords / numbers / types
+      out += highlightPlain(escapeHtml(t.text))
+    }
+  }
+
+  return out
+}

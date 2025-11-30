@@ -9,7 +9,7 @@ import {
 } from "./field/tracers"
 import { cardHeight, cardWidth } from "./render/renderCardComponents"
 import { appState } from "./state/appState"
-import { generateFieldModule, escapeHtml } from "./generateCode"
+import { generateFieldModule, highlightTs } from "./generateCode"
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <div class="code-container">
@@ -127,7 +127,10 @@ function updateCodeView(nodes: InfluenceNode[]) {
   if (!codeContentDiv) return
   const code = generateFieldModule(nodes)
   lastGeneratedCode = code
-  codeContentDiv.innerHTML = `<pre><code>${escapeHtml(code)}</code></pre>`
+
+  // highlightTs returns HTML (escaped + spans)
+  const highlighted = highlightTs(code)
+  codeContentDiv.innerHTML = `<pre><code class="ts">${highlighted}</code></pre>`
 }
 
 const copyButton = document.getElementById("copyButton")
