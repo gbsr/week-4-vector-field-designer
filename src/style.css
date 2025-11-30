@@ -1,3 +1,20 @@
+#app {
+  display: flex;
+}
+
+.code-container,
+.canvas-container {
+  flex: 0 0 50%;
+  min-width: 200px;
+}
+
+.splitter {
+  width: 16px;
+  cursor: col-resize;
+  background-color: #111;
+  border: 2px solid #333;
+}
+
 body {
   margin: 0;
   padding: 0;

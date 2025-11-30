@@ -57,6 +57,8 @@ animate();
       </div>
     </div>
 
+    <div id="splitter" class="splitter"></div>
+
     <div class="canvas-container">
       <span class="canvas-label">Zoom: Mouse Wheel | Pan: Drag | Dblclick to add new node</span>
       <span class="canvas-label" id="zoomLabel">Zoom: 100%</span>
@@ -108,6 +110,46 @@ animate();
       <div id="card-layer"></div>
     </div>
 `
+
+// splitter drag logic
+const appRoot = document.querySelector<HTMLDivElement>("#app")
+const codeContainer = document.querySelector<HTMLDivElement>(".code-container")
+const canvasContainer =
+  document.querySelector<HTMLDivElement>(".canvas-container")
+const splitter = document.getElementById("splitter") as HTMLDivElement | null
+
+let isDraggingSplit = false
+
+if (appRoot && codeContainer && canvasContainer && splitter) {
+  splitter.addEventListener("mousedown", (e) => {
+    e.preventDefault()
+    isDraggingSplit = true
+  })
+
+  window.addEventListener("mousemove", (e) => {
+    if (!isDraggingSplit) return
+
+    const appRect = appRoot.getBoundingClientRect()
+    const relativeX = e.clientX - appRect.left
+    let ratio = relativeX / appRect.width
+
+    // clamp so neither side becomes absurdly small
+    ratio = Math.max(0.15, Math.min(0.85, ratio))
+
+    const leftPercent = ratio * 100
+    const rightPercent = 100 - leftPercent
+
+    codeContainer.style.flex = `0 0 ${leftPercent}%`
+    canvasContainer.style.flex = `0 0 ${rightPercent}%`
+
+    // keep canvas bitmap in sync with CSS size
+    resizeCanvas()
+  })
+
+  window.addEventListener("mouseup", () => {
+    isDraggingSplit = false
+  })
+}
 
 const copyButton = document.getElementById("copyButton")
 copyButton?.addEventListener("click", () => {
