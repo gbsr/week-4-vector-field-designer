@@ -12,9 +12,7 @@ export function renderMain(
   ctx: CanvasRenderingContext2D,
   viewport: Viewport,
   nodes: InfluenceNode[],
-  tracers: Tracer[],
-  cardWidth: number,
-  cardHeight: number
+  tracers: Tracer[]
 ) {
   const w = canvas.width
   const h = canvas.height
