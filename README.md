@@ -39,7 +39,7 @@ And it worked and it’s now a building block for future work and experimentatio
 
 ## Demo
 
-**Live:** https://gbsr.github.io/week-4-flow-field-designer/
+**Live:** https://gbsr.github.io/week-4-flow-field-designer/  
 **Repo:** https://github.com/gbsr/week-4-vector-field-designer
 
 ---
