@@ -664,7 +664,7 @@ function loop(timestamp: number) {
   updateCodeView(nodes)
 
   // Always redraw: grid + arrows + tracers + DOM cards
-  renderMain(canvas, ctx!, viewport, nodes, tracers, 180, 90)
+  renderMain(canvas, ctx!, viewport, nodes, tracers)
 
   requestAnimationFrame(loop)
 }
