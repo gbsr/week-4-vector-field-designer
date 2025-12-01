@@ -11,16 +11,62 @@ import { cardHeight, cardWidth } from "./render/renderCardComponents"
 import { appState } from "./state/appState"
 import { generateFieldModule, highlightTs } from "./generateCode"
 
+// ----------------------------------------------------
+// Persistence: save/restore viewport + nodes snapshot
+// ----------------------------------------------------
+
+interface SavedState {
+  viewport: {
+    offsetX: number
+    offsetY: number
+    scale: number
+  }
+  nodes: InfluenceNode[]
+}
+
+const STORAGE_KEY = "flowFieldDesignerState"
+
+function loadSavedState(): SavedState | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as SavedState
+  } catch {
+    return null
+  }
+}
+
+function saveDesignerState(viewport: Viewport, nodes: InfluenceNode[]) {
+  const snapshot: SavedState = {
+    viewport: {
+      offsetX: viewport.offsetX,
+      offsetY: viewport.offsetY,
+      scale: viewport.scale,
+    },
+    nodes: nodes.map((n) => ({ ...n })),
+  }
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot))
+  } catch (err) {
+    console.warn("Failed to save designer state", err)
+  }
+}
+
+// ----------------------------------------------------
+// UI bootstrap
+// ----------------------------------------------------
+
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <div class="code-container">
-    <div class="button-row">
-    <button id="tryButton">Try code</button>
-      <button id="copyButton">Copy Code</button>
-    </div>
+      <div class="button-row">
+        <button id="tryButton">Try code</button>
+        <button id="copyButton">Copy Code</button>
+      </div>
       <div class="code-contentWrapper">
         <div class="code-content">
 
-<!-- test code output here -->
+          <!-- test code output here -->
         
 
         </div>
@@ -33,9 +79,9 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
       <span class="canvas-label">Zoom: Mouse Wheel | Pan: Drag | Dblclick to add new node</span>
       <span class="canvas-label" id="zoomLabel">Zoom: 100%</span>
       <div class="toggle-row">
-      <button class="hideCardsButton" id="hideCardsButton" title="Hide Cards">Toggle Cards</button>
-      <button id="toggleGridButton" title="Toggle grid">Toggle Grid</button>
-      <button id="toggleArrowsButton" title="Toggle arrows">Toggle Arrows</button>
+        <button class="hideCardsButton" id="hideCardsButton" title="Hide Cards">Toggle Cards</button>
+        <button id="toggleGridButton" title="Toggle grid">Toggle Grid</button>
+        <button id="toggleArrowsButton" title="Toggle arrows">Toggle Arrows</button>
       </div>
       <!-- tracer + view controls -->
       <div class="tracer-controls">
@@ -154,42 +200,6 @@ copyButton?.addEventListener("click", () => {
       })
   }
 })
-// open test.html in same tab with the code prefilled via URL fragment
-const tryButton = document.getElementById(
-  "tryButton"
-) as HTMLButtonElement | null
-
-tryButton?.addEventListener("click", () => {
-  const codeToTry =
-    lastGeneratedCode ||
-    document.querySelector(".code-content")?.textContent?.trim() ||
-    ""
-
-  if (!codeToTry) return
-
-  const encoded = encodeURIComponent(codeToTry)
-
-  const testUrl = `${location.origin}${location.pathname.replace(
-    /\/[^/]*$/,
-    "/"
-  )}test.html#code=${encoded}`
-
-  location.href = testUrl
-})
-
-const hideCardsButton = document.getElementById("hideCardsButton")
-let cardsVisible = true
-hideCardsButton?.addEventListener("click", () => {
-  cardsVisible = !cardsVisible
-  if (cardsVisible) {
-    showCardsForAllNodes()
-    hideCardsButton.title = "Hide Cards"
-  } else {
-    hideCardsForAllNodes()
-    hideCardsButton.title = "Show Cards"
-  }
-})
-
 // tracer + view controls refs
 const tracerWidthInput = document.getElementById(
   "tracerWidthInput"
@@ -205,6 +215,9 @@ const toggleGridButton = document.getElementById(
 ) as HTMLButtonElement | null
 const toggleArrowsButton = document.getElementById(
   "toggleArrowsButton"
+) as HTMLButtonElement | null
+const toggleCardsButton = document.getElementById(
+  "hideCardsButton"
 ) as HTMLButtonElement | null
 
 // setup canvas
@@ -240,8 +253,55 @@ export function setIsDraggingNodeOrCard(isDragging: boolean) {
   isDraggingNodeOrCard = isDragging
 }
 
-// use shared viewport from appState instead of local one
+// use shared viewport + nodes from appState
 const viewport = appState.viewport
+const nodes: InfluenceNode[] = appState.nodes
+
+// labels
+const zoomLabel = document.getElementById("zoomLabel") as HTMLSpanElement | null
+const posLabel = document.getElementById("posLabel") as HTMLSpanElement | null
+const gridStep = 25
+
+// ----------------------------------------------------
+// Restore previous session or create default node
+// ----------------------------------------------------
+
+;(function initViewportAndNodes() {
+  // default viewport
+  viewport.offsetX = canvas.width / 2
+  viewport.offsetY = canvas.height / 2
+  viewport.scale = 1
+
+  const saved = loadSavedState()
+  if (saved && saved.nodes && saved.nodes.length) {
+    viewport.offsetX = saved.viewport.offsetX
+    viewport.offsetY = saved.viewport.offsetY
+    viewport.scale = saved.viewport.scale
+
+    nodes.length = 0
+    for (const n of saved.nodes) {
+      nodes.push(n)
+    }
+  } else {
+    // fallback initial node if nothing saved yet
+    nodes.push({
+      id: "n1",
+      kind: "vortex",
+      spin: "ccw",
+      x: 0,
+      y: 0,
+      force: 1,
+      radius: 380,
+      falloff: "smooth",
+      cardX: 300,
+      cardY: 100,
+    })
+  }
+
+  if (zoomLabel) {
+    zoomLabel.textContent = `Zoom: ${(viewport.scale * 100).toFixed(0)}%`
+  }
+})()
 
 // drag state, will be refactored into proper state management later
 type DragMode = "none" | "pan" | "node" | "card"
@@ -256,14 +316,6 @@ let tracerCount = 60
 let tracerSpeed = 180
 let tracerLength = 90
 let tracerBaseWidth = 4
-
-// center world origin (0,0) in the middle of the canvas
-viewport.offsetX = canvas.width / 2
-viewport.offsetY = canvas.height / 2
-viewport.scale = 1
-
-// shared nodes array from appState
-const nodes: InfluenceNode[] = appState.nodes
 
 canvas.addEventListener("mousedown", (e) => {
   const rect = canvas.getBoundingClientRect()
@@ -321,6 +373,11 @@ window.addEventListener("mousemove", (e) => {
 
     lastPanX = e.clientX
     lastPanY = e.clientY
+
+    if (zoomLabel) {
+      zoomLabel.textContent = `Zoom: ${(viewport.scale * 100).toFixed(0)}%`
+    }
+
     return
   }
 
@@ -389,11 +446,6 @@ canvas.addEventListener(
   { passive: false }
 )
 
-// labels
-const zoomLabel = document.getElementById("zoomLabel") as HTMLSpanElement | null
-const posLabel = document.getElementById("posLabel") as HTMLSpanElement | null
-const gridStep = 25
-
 // cursor world position label (snapped to grid)
 canvas.addEventListener("mousemove", (e) => {
   const rect = canvas.getBoundingClientRect()
@@ -442,19 +494,15 @@ function createNewNodeAt(worldX: number, worldY: number) {
 function hideCardsForAllNodes() {
   const cardLayer = document.getElementById("card-layer")
   if (cardLayer) {
-    cardLayer.style.display = "none"
+    cardLayer.classList.add("hidden")
   }
 }
 
 function showCardsForAllNodes() {
   const cardLayer = document.getElementById("card-layer")
   if (cardLayer) {
-    cardLayer.style.display = "block"
+    cardLayer.classList.remove("hidden")
   }
-}
-
-function toggleArrowsVisibility() {
-  appState.showArrows = !appState.showArrows
 }
 
 canvas.addEventListener("dblclick", (e) => {
@@ -474,28 +522,6 @@ function screenToWorld(x: number, y: number, viewport: Viewport) {
     y: (y - viewport.offsetY) / viewport.scale,
   }
 }
-
-// use canvas center as a safe default click position for now
-const clickX = canvas.width / 2
-const clickY = canvas.height / 2
-
-// now in world coords
-// temporary cards positions
-const worldPos = screenToWorld(clickX, clickY, viewport)
-
-// push initial nodes to appstate
-nodes.push({
-  id: "n1",
-  kind: "vortex",
-  spin: "ccw",
-  x: 0,
-  y: 0,
-  force: 1,
-  radius: 380,
-  falloff: "smooth",
-  cardX: worldPos.x + 300,
-  cardY: worldPos.y + 100,
-})
 
 // tracers created from shared nodes, stored in appState too
 const tracers = createTracers(
@@ -551,6 +577,20 @@ if (tracerLifetimeInput) {
   })
 }
 
+// card toggle
+if (toggleCardsButton) {
+  toggleCardsButton.addEventListener("click", () => {
+    const cardLayer = document.getElementById("card-layer")
+    if (cardLayer) {
+      if (cardLayer.classList.contains("hidden")) {
+        showCardsForAllNodes()
+      } else {
+        hideCardsForAllNodes()
+      }
+    }
+  })
+}
+
 // grid / arrow toggles
 if (toggleGridButton) {
   toggleGridButton.addEventListener("click", () => {
@@ -563,6 +603,42 @@ if (toggleArrowsButton) {
     appState.showArrows = !appState.showArrows
   })
 }
+
+// open test.html in same tab with the code prefilled via URL fragment
+const tryButton = document.getElementById(
+  "tryButton"
+) as HTMLButtonElement | null
+
+tryButton?.addEventListener("click", () => {
+  const codeToTry =
+    lastGeneratedCode ||
+    document.querySelector(".code-content")?.textContent?.trim() ||
+    ""
+
+  if (!codeToTry) return
+
+  // save current designer state so Back will restore this layout
+  saveDesignerState(viewport, nodes)
+
+  // viewport export: zoom + camera world position at canvas center
+  const centerWorldX = (canvas.width / 2 - viewport.offsetX) / viewport.scale
+  const centerWorldY = (canvas.height / 2 - viewport.offsetY) / viewport.scale
+
+  const encodedCode = encodeURIComponent(codeToTry)
+  const encodedZoom = encodeURIComponent(String(viewport.scale))
+  const encodedCamX = encodeURIComponent(String(centerWorldX))
+  const encodedCamY = encodeURIComponent(String(centerWorldY))
+
+  const basePath = location.pathname.replace(/\/[^/]*$/, "/")
+  const testUrl =
+    `${location.origin}${basePath}test.html` +
+    `#code=${encodedCode}` +
+    `&zoom=${encodedZoom}` +
+    `&camx=${encodedCamX}` +
+    `&camy=${encodedCamY}`
+
+  location.href = testUrl
+})
 
 let lastTimestamp = performance.now()
 

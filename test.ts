@@ -1,4 +1,18 @@
-const FIELD_SCALE = 0.5 // scale factor between field coords and canvas coords
+// Read URL hash parameters shared from the designer
+function getHashParams(): URLSearchParams {
+  const hash = window.location.hash
+  const withoutHash = hash.startsWith("#") ? hash.slice(1) : hash
+  return new URLSearchParams(withoutHash)
+}
+
+const HASH_PARAMS = getHashParams()
+
+// Zoom factor (1 == 100%) coming from the designer viewport
+const FIELD_SCALE = parseFloat(HASH_PARAMS.get("zoom") ?? "") || 1
+
+// World-space coordinate that should appear at the canvas center
+const CAMX = parseFloat(HASH_PARAMS.get("camx") ?? "") || 0
+const CAMY = parseFloat(HASH_PARAMS.get("camy") ?? "") || 0
 
 interface Particle {
   x: number
@@ -306,13 +320,7 @@ function setStatus(message: string, isError = false) {
 }
 
 function getPrefilledCode(): string | null {
-  const hash = window.location.hash
-  if (!hash) return null
-
-  // drop leading '#'
-  const withoutHash = hash.startsWith("#") ? hash.slice(1) : hash
-  const params = new URLSearchParams(withoutHash)
-  const encoded = params.get("code")
+  const encoded = HASH_PARAMS.get("code")
   if (!encoded) return null
 
   try {
@@ -475,9 +483,9 @@ function stepParticles(dt: number) {
   const speed = PARTICLE_SPEED
 
   for (const p of particles) {
-    // map canvas coords -> field coords with origin at canvas center
-    const worldX = (p.x - canvas.width / 2) / FIELD_SCALE
-    const worldY = (p.y - canvas.height / 2) / FIELD_SCALE
+    // map canvas coords -> field coords with origin at camera center
+    const worldX = (p.x - canvas.width / 2) / FIELD_SCALE + CAMX
+    const worldY = (p.y - canvas.height / 2) / FIELD_SCALE + CAMY
 
     const field = evaluateField({ x: worldX, y: worldY }, nodes)
     let vx = field.x
