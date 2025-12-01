@@ -6,7 +6,8 @@ This is **Week 4**.
 
 # Flow Field Designer & Tester
 
-*Week 4 — 52 Weeks of Code Challenge*
+*Week 4 — 52 Weeks of Code Challenge*  
+https://github.com/gbsr/52-weeks-of-code  
 
 A visual tool for designing **flow fields** using draggable nodes (attract, repel, vortex, flow), real-time particle tracers, and a fully integrated **code generator + sandbox tester**.
 
