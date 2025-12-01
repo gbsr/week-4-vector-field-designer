@@ -606,6 +606,10 @@ if (resetParticlesButton) {
     setStatus("Particles reset.", false)
   })
 }
-
-setStatus("Waiting for field code…", false)
-initParticles()
+// if weeee have prefilled code, try to run it immediately
+if (prefilled && runButton) {
+  runButton.click()
+} else {
+  setStatus("Waiting for field code…", false)
+  initParticles()
+}
