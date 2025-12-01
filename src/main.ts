@@ -13,7 +13,10 @@ import { generateFieldModule, highlightTs } from "./generateCode"
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <div class="code-container">
-    <button id="copyButton">Copy Code</button>
+    <div class="button-row">
+    <button id="tryButton">Try code</button>
+      <button id="copyButton">Copy Code</button>
+    </div>
       <div class="code-contentWrapper">
         <div class="code-content">
 
@@ -150,6 +153,28 @@ copyButton?.addEventListener("click", () => {
         console.error("Failed to copy text: ", err)
       })
   }
+})
+// open test.html in same tab with the code prefilled via URL fragment
+const tryButton = document.getElementById(
+  "tryButton"
+) as HTMLButtonElement | null
+
+tryButton?.addEventListener("click", () => {
+  const codeToTry =
+    lastGeneratedCode ||
+    document.querySelector(".code-content")?.textContent?.trim() ||
+    ""
+
+  if (!codeToTry) return
+
+  const encoded = encodeURIComponent(codeToTry)
+
+  const testUrl = `${location.origin}${location.pathname.replace(
+    /\/[^/]*$/,
+    "/"
+  )}test.html#code=${encoded}`
+
+  location.href = testUrl
 })
 
 const hideCardsButton = document.getElementById("hideCardsButton")

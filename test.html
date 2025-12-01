@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Vector Field Test Harness</title>
+    <link rel="stylesheet" href="./test.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <section class="left">
+        <div class="button-row">
+          <button id="backToDesignerButton" class="back-button">
+            ← Designer
+          </button>
+          <button id="copyButton">Copy Code</button>
+        </div>
+        <p class="hint">
+          Paste the generated <strong>field module code</strong> below and click
+          <strong>Run field</strong>. The tester expects there to be a
+          <code>nodes</code> array and an
+          <code>evaluateField(x, y, nodes)</code> function.
+        </p>
+        <div class="code-shell">
+          <div class="code-highlight" aria-hidden="true"></div>
+          <textarea id="codeInput" spellcheck="false"></textarea>
+        </div>
+
+        <div class="controls">
+          <button id="runButton">Run field</button>
+          <button id="resetParticlesButton">Reset particles</button>
+        </div>
+        <pre id="status" class="status"></pre>
+      </section>
+
+      <section class="right">
+        <h2>Field Preview</h2>
+        <canvas id="fieldCanvas" width="900" height="600"></canvas>
+      </section>
+    </div>
+
+    <script type="module" src="./test.js"></script>
+  </body>
+</html>

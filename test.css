@@ -1,0 +1,194 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: #121212;
+  color: #eee;
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.button-row button {
+  margin: 20px;
+  background-color: #007acc;
+  padding: 8px 12px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  max-width: 120px;
+}
+
+.layout {
+  display: flex;
+  height: 100vh;
+}
+
+.left {
+  flex: 0 0 45%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-right: 1px solid #333;
+}
+
+.right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+h1,
+h2 {
+  margin: 4px 0 8px;
+  font-size: 16px;
+}
+
+.hint {
+  margin: 0 0 4px;
+  padding-inline: 20px;
+  font-size: 12px;
+  color: #aaa;
+}
+
+/* Code editor shell: aligned with hint / buttons */
+.code-shell {
+  position: relative;
+  width: calc(100% - 40px); /* 20px inset on each side */
+  margin: 0 20px;
+  flex: 1;
+  min-height: 0;
+  border-radius: 6px;
+}
+
+/* Shared typography so caret == overlay */
+.code-shell textarea,
+.code-shell .code-highlight {
+  box-sizing: border-box;
+  font-family: Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: 0;
+  font-variant-ligatures: none;
+  padding: 10px 12px;
+  white-space: pre;
+  overflow: auto;
+  tab-size: 2;
+  border-radius: 6px;
+}
+
+/* Syntax-highlight layer (underneath) */
+.code-shell .code-highlight {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #333;
+  background: #050509;
+  color: #f8f8f2;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Textarea (on top, invisible text) */
+.code-shell textarea {
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: transparent;
+  caret-color: #ffffff;
+  resize: none;
+  z-index: 2;
+}
+
+/* Hard override – in case any old #codeInput rule still exists */
+.code-shell textarea#codeInput {
+  font-family: Menlo, Monaco, Consolas, monospace !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+}
+
+/* Focus glow */
+.code-shell:focus-within .code-highlight {
+  border-color: #5b8cff;
+}
+
+/* Token colours */
+.code-highlight .tok-kw {
+  color: #ff79c6;
+}
+.code-highlight .tok-string {
+  color: #f1fa8c;
+}
+.code-highlight .tok-number {
+  color: #bd93f9;
+}
+.code-highlight .tok-type {
+  color: #8be9fd;
+}
+.code-highlight .tok-comment {
+  color: #6272a4;
+}
+
+/* Controls row under editor, aligned with code/hint */
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  margin-inline: 20px;
+}
+
+.controls button {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  background: #1f1f1f;
+  color: #eee;
+  cursor: pointer;
+}
+
+.controls button:hover {
+  background: #2a2a2a;
+}
+
+.controls button:active {
+  background: #333;
+}
+
+/* Status box aligned with everything else */
+#status.status {
+  margin-top: 6px;
+  margin-inline: 20px;
+  padding: 4px 6px;
+  font-size: 11px;
+  max-height: 80px;
+  overflow: auto;
+  background: #050505;
+  border-radius: 4px;
+  border: 1px solid #333;
+  white-space: pre-wrap;
+}
+
+#status.ok {
+  border-color: #2e7d32;
+  color: #a5d6a7;
+}
+
+#status.error {
+  border-color: #c62828;
+  color: #ef9a9a;
+}
+
+#fieldCanvas {
+  flex: 1;
+  border-radius: 4px;
+  border: 1px solid #333;
+  background: #050509;
+  display: block;
+}

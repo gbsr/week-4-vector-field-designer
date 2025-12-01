@@ -231,6 +231,12 @@ span#posLabel {
   margin-left: 10px;
 }
 
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .hideCardsButton,
 #toggleArrowsButton,
 #toggleGridButton {
